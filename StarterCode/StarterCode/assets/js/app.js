@@ -33,18 +33,31 @@ d3.csv("assets/data/data.csv").then(function(journalismdata) {
     // Step 2: Create scale functions
     // ==============================
     var xLinearScale = d3.scaleLinear()
-      .domain([8, d3.max(journalismdata, d => d.poverty)])
+      .domain([d3.min(journalismdata, d => d.poverty)*.9, d3.max(journalismdata, d => d.poverty)*1.1])
       .range([0, width]);
 
     var yLinearScale = d3.scaleLinear()
-      .domain([4, d3.max(journalismdata, d => d.healthcare)])
+      .domain([d3.min(journalismdata, d => d.healthcare)*.9, d3.max(journalismdata, d => d.healthcare)*1.1])
       .range([height, 0]);
 
     // Step 3: Create axis functions
     // ==============================
-    var bottomAxis = d3.axisBottom(xLinearScale).ticks(8);
-    var leftAxis = d3.axisLeft(yLinearScale).ticks(12);
+    var bottomAxis = d3.axisBottom(xLinearScale)
+    var leftAxis = d3.axisLeft(yLinearScale)
 
+       // Step 6: Initialize tool tip
+    // ==============================
+    var toolTip = d3.tip()
+      .attr("class", "d3-tip")
+      //.offset([60, -60])
+      .html(function(d) {
+        return (`${d.state}<br>Poverty: ${d.poverty}%<br>Healthcare: ${d.healthcare}%`);
+      });
+
+    /* Invoke the tip in the context of your visualization */
+    chartGroup.call(toolTip)
+
+   
     // Step 4: Append Axes to the chart
     // ==============================
     chartGroup.append("g")
@@ -62,8 +75,10 @@ d3.csv("assets/data/data.csv").then(function(journalismdata) {
     .append("circle")
     .attr("cx", d => xLinearScale(d.poverty))
     .attr("cy", d => yLinearScale(d.healthcare))
-    .attr("r", "15")
+    .attr("r", "12")
     .attr("class", "stateCircle")
+    .on('mouseover', toolTip.show)
+    .on('mouseout', toolTip.hide)
 
     var circletextGroup = chartGroup.selectAll()
     .data(journalismdata)
@@ -73,29 +88,11 @@ d3.csv("assets/data/data.csv").then(function(journalismdata) {
     .attr("x", d => xLinearScale(d.poverty))
     .attr("y", d => yLinearScale(d.healthcare))
     .attr("class", "stateText")
-
-    // Step 6: Initialize tool tip
-    // ==============================
-    var toolTip = d3.tip()
-      .attr("class", "d3-tip")
-      //.offset([60, -60])
-      .html(function(d) {
-        return (`${d.state}<br>Poverty: ${d.poverty}%<br>Healthcare: ${d.healthcare}%`);
-      });
-
-    /* Invoke the tip in the context of your visualization */
-    chartGroup.call(toolTip)
-
-    circlesGroup.selectAll('circle')
-    .data(journalismdata)
-    .enter()
-    .append('circle')
-    .attr('width', function() { return x.rangeBand() })
-    .attr('height', function(d) { return h - y(d) })
-    .attr('y', function(d) { return y(d) })
-    .attr('x', function(d, i) { return x(i) })
+    .attr("font-size", "12")
     .on('mouseover', toolTip.show)
     .on('mouseout', toolTip.hide)
+
+
 
 
     // // Step 7: Create tooltip in the chart
